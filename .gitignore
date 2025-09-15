@@ -8,7 +8,6 @@ cache/
 artifacts-zk/
 cache-zk/
 
-reth_chaindata/
 postgres-data/
 *.sqlite
 
