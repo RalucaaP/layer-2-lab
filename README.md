@@ -1,101 +1,148 @@
-# zkSync local development setup
+# Layer-2 Scalability Lab (zkSync vs Ethereum L1)
 
-This repository contains the tooling necessary to bootstrap zkSync locally.
+This lab demonstrates how Layer 2 solutions (zkSync) improve scalability and cost compared to a local Ethereum Layer 1 (reth with 6s blocktime).  
+You will:
+- Run a local devnet with Docker
+- Deploy a simple Counter contract to both L1 and L2
+- Benchmark transaction throughput, latency, gas usage, and fees
+- Interpret results to understand the scalability benefits of Layer 2
 
-By default, it doesn't use any docker volumes, so all the data is lost when docker is stopped.
+---
 
-## Dependencies
+## Prerequisites
 
-To run zkSync locally, you must have `docker compose` and `Docker` installed on your machine. 
+Make sure the following are installed:
 
-## Usage
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)  
+- [Node.js](https://nodejs.org/) (≥ 18.x recommended)  
+- [npm](https://www.npmjs.com/) (comes with Node.js)  
+- Git (to clone the repository)
 
-To bootstrap zkSync locally, just run:
+---
 
-```shell
+
+## 1. Start Local Environment
+
+Use the provided script:
+
+```bash
 ./start.sh
 ```
 
-This command will bootstrap three docker containers:
-- Postgres (used as the database for zkSync).
-- Local Reth node (used as L1 for zkSync).
-- zkSync server itself.
+This launches:
+- **reth (L1)**: `http://127.0.0.1:8545` (blocktime = 6s)  
+- **zkSync local-node (L2)**: `http://127.0.0.1:3050`  
+- **Postgres**: used internally by zkSync  
 
-By default, the HTTP JSON-RPC API will run on port `3050`, while WS API will run on port `3051`. 
+Wait until zkSync is healthy (log: `server is ready`).
 
-*Note, that it is important that the first start script goes uninterrupted. If you face any issues after the bootstrapping process unexpectedly stopped, you should [reset](#resetting-zksync-state) the local zkSync state and try again.* 
+---
 
-## Resetting zkSync state
+## 2. Install Dependencies
 
-To reset the zkSync state, just run:
+Go into the lab folder and install Node.js dependencies:
 
-```shell
+```bash
+cd zksync-burst-demo
+npm install
+```
+
+---
+
+## 3. Compile Contracts
+
+We’ll use a simple **Counter** contract (`contracts/Counter.sol`):
+
+```bash
+npx hardhat compile
+```
+
+---
+
+## 4. Deploy Contracts
+
+Deploy the Counter contract to both L1 and L2:
+
+```bash
+node scripts/deploy_l1.cjs
+node scripts/deploy_l2.cjs
+```
+
+Each script will print the deployed contract address.
+
+👉 Copy these addresses and update them inside `scripts/bench.cjs` where indicated:
+
+```js
+const l1Addr = "PASTE_L1_ADDRESS_HERE";
+const l2Addr = "PASTE_L2_ADDRESS_HERE";
+```
+
+---
+
+## 5. Run Benchmarks
+
+Run the benchmark script with different concurrency and signer settings.
+
+### Example 1: Baseline (1 signer, 40 inflight)
+```bash
+INFLIGHT=40 MULTI_SIGNERS=1 node scripts/bench.cjs
+```
+
+### Example 2: Multi-signer (4 signers, 160 inflight)
+```bash
+INFLIGHT=160 MULTI_SIGNERS=4 node scripts/bench.cjs
+```
+
+### Example 3: Heavy load (8 signers, 320 inflight)
+```bash
+INFLIGHT=320 MULTI_SIGNERS=8 node scripts/bench.cjs
+```
+
+---
+
+## 6. Interpreting Results
+
+The benchmark outputs a table:
+
+- **accept_tps** → throughput at RPC acceptance (higher on L2)  
+- **accept_ms_p50/p90/p99** → latency percentiles for tx acceptance  
+- **receipt_ms_p50/p90/p99** → latency percentiles for receipt confirmation  
+- **gas_used / fees** → L2 txs cost less despite higher gas per tx  
+
+### Expected outcome
+- **Throughput:** L2 > L1 under load  
+- **Latency:** L2 receipts ~3–5s predictable, L1 tied to 6s block time  
+- **Fees:** L2 ~4–5× cheaper than L1  
+- **Gas:** Higher per tx on L2 (due to VM overhead), but lower effective fees  
+
+---
+
+## 7. Reset Environment
+
+Stop and clean containers:
+
+```bash
 ./clear.sh
 ```
 
+Remove Hardhat build artifacts:
 
-## Rich wallets
-
-Local zkSync setup comes with some "rich" wallets with large amounts of ETH on both L1 and L2.
-
-The full list of the addresses of these accounts with the corresponding private keys can be found [here](./rich-wallets.json).
-
-Also, during the initial bootstrapping of the system, several ERC-20 contracts are deployed locally. Note, that large quantities of these ERC-20 belong to the wallet `0x36615Cf349d7F6344891B1e7CA7C72883F5dc049` (the first one in the list of the rich wallet). Right after bootstrapping the system, these ERC-20 funds are available only on L1.
-
-## Using custom database/L1
-
-To use custom Postgres database or Layer 1, you should change the `environment` parameters in the docker-compose file:
-
-```yml
-environment:
-    - DATABASE_URL=postgres://postgres@postgres/zksync_local
-    - ETH_CLIENT_WEB3_URL=http://geth:8545
+```bash
+cd zksync-burst-demo
+npx hardhat clean
 ```
 
-- `DATABASE_URL` is the URL to the Postgres database.
-- `ETH_CLIENT_WEB3_URL` is the URL to the HTTP JSON-RPC interface of the L1 node.
+---
 
-## Local testing example
+## ⚠️ Notes
 
-You can an example of hardhat project that utilizes local testing capabilities [here](https://github.com/matter-labs/tutorial-examples/tree/main/local-setup-testing).
+- `rich-wallets.json` contains **prefunded test accounts**. Never use them on mainnet.  
+- If you see `nonce too high` errors → reduce `INFLIGHT` or increase `MULTI_SIGNERS`.  
+- Node version tested: **Node.js 18.x**  
+- Docker images pinned:
+  - `ghcr.io/paradigmxyz/reth:v1.3.12`
+  - `matterlabs/local-node:latest2.0`
 
-To run tests, clone the repo and run `yarn test`:
+---
 
-```shell
-git clone https://github.com/matter-labs/tutorial-examples.git
-cd local-setup-testing
-yarn test
-```
-
-
-
-## ZK Chains
-
-Will start ZK Chains with 3 L2s, L1 and necessary explorers.
-
-To run:
-
-```shell
-./start-zk-chains.sh
-```
-
-Afterwards, you'll have explorers available at http://localhost:15000 http://localhost:15001 and http://localhost:15005
-
-
-### Manual transfer to ZK Chains
-
-
-Make sure to get the correct bridgehub address (in this example: 0x35A3783781DE026E1e854A6DA45d7a903664a9dA) from the hyperexplorer.
-
- ```shell
- cast send -r http://localhost:15045  --private-key 0x27593fea79697e947890ecbecce7901b0008345e5d7259710d0dd5e500d040be 0x35A3783781DE026E1e854A6DA45d7a903664a9dA "requestL2TransactionDirect((uint256, uint256, address, uint256, bytes, uint256, uint256, bytes[], address))" "(270,0xde0b6b3a7640000,0x005C43B2063625e9425943Fec65c42d005a2cD1f,10000000000000,"",10000000,800,[0x1234567890123456789012345678901234567890123456789012345678901234],0x005C43B2063625e9425943Fec65c42d005a2cD1f)" --value=1000000000000000000
- ```
-
-### Resetting zkSync state
-
-To reset the zkSync state, just run:
-
-```shell
-./clear-zk-chains.sh
-```
-
+Congratulations! You now have hands-on experience comparing **Ethereum L1 vs zkSync L2** performance.

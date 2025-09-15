@@ -1,13 +1,13 @@
 services:
   reth:
     restart: always
-    image: "ghcr.io/paradigmxyz/reth:v0.2.0-beta.2"
+    image: "ghcr.io/paradigmxyz/reth:v1.3.12"
     volumes:
       - type: bind
         source: ./reth_chaindata
         target: /chaindata
 
-    command: node --dev --datadir /rethdata --http --http.corsdomain "*" --http.addr 0.0.0.0 --http.port 8545  --dev.block-time 300ms --chain /chaindata/reth_config
+    command: node --dev --datadir /rethdata --http --http.corsdomain "*" --http.addr 0.0.0.0 --http.port 8545  --dev.block-time 6s --chain /chaindata/reth_config
     environment:
       - RUST_LOG=warn
     ports:
@@ -40,6 +40,7 @@ services:
       - DATABASE_PROVER_URL=postgres://postgres:notsecurepassword@postgres/prover_local
       - DATABASE_URL=postgres://postgres:notsecurepassword@postgres/zksync_local
       - ETH_CLIENT_WEB3_URL=http://reth:8545 
+      - ZKSYNC_SKIP_PROVER=1
 
 volumes:
   reth:
