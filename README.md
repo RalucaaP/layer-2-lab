@@ -64,8 +64,8 @@ npx hardhat compile
 Deploy the Counter contract to both L1 and L2:
 
 ```bash
-node scripts/deploy_l1.cjs
-node scripts/deploy_l2.cjs
+npx hardhat run scripts/deploy-l1.js --network l1Local
+npx hardhat run scripts/deploy-l2.js --network zksyncLocal
 ```
 
 Each script will print the deployed contract address.
@@ -73,8 +73,8 @@ Each script will print the deployed contract address.
 👉 Copy these addresses and update them inside `scripts/bench.cjs` where indicated:
 
 ```js
-const l1Addr = "PASTE_L1_ADDRESS_HERE";
-const l2Addr = "PASTE_L2_ADDRESS_HERE";
+  ADDR_L1: process.env.ADDR_L1 || "PASTE_L1_ADDRESS_HERE", 
+  ADDR_L2: process.env.ADDR_L2 || "PASTE_L2_ADDRESS_HERE", 
 ```
 
 ---

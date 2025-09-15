@@ -11,7 +11,7 @@ const DEFAULTS = {
   INFLIGHT: +(process.env.INFLIGHT || 200),
   GAS_LIMIT: BigInt(process.env.GAS_LIMIT || 150000),
   MULTI_SIGNERS: +(process.env.MULTI_SIGNERS || 1),
-  RICH_WALLETS_PATH: process.env.RICH_WALLETS_PATH || path.join(__dirname, "../../local-setup/rich-wallets.json"),
+  RICH_WALLETS_PATH: process.env.RICH_WALLETS_PATH || path.join(__dirname, "../../rich-wallets.json"),
 };
 
 function nowMs() { return Number(process.hrtime.bigint() / 1_000_000n); }
