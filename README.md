@@ -14,7 +14,7 @@ You will:
 Make sure the following are installed:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)  
-- [Node.js](https://nodejs.org/) (≥ 18.x recommended)  
+- [Node.js](https://nodejs.org/) (≥ 20.10 recommended)  
 - [npm](https://www.npmjs.com/) (comes with Node.js)  
 - Git (to clone the repository)
 
