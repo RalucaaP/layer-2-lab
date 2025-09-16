@@ -17,5 +17,8 @@
     "zksync-ethers": "^6.20.1"
   },
   "description": "",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.2.2"
+  }
 }

@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { ethers } = require("ethers");
 const fs = require("fs");
 const path = require("path");
@@ -5,8 +6,8 @@ const path = require("path");
 const DEFAULTS = {
   RPC_L1: process.env.RPC_L1 || "http://127.0.0.1:8545",
   RPC_L2: process.env.RPC_L2 || "http://127.0.0.1:3050",
-  ADDR_L1: process.env.ADDR_L1 || "PASTE_L1_ADDRESS_HERE",  //to complete with the address of the Layer1 Smart Contract
-  ADDR_L2: process.env.ADDR_L2 || "PASTE_L2_ADDRESS_HERE",  ////to complete with the address of the Layer2 Smart Contract
+  ADDR_L1: process.env.ADDR_L1 || "",
+  ADDR_L2: process.env.ADDR_L2 || "",
   TXS: +(process.env.TXS || 1000),
   INFLIGHT: +(process.env.INFLIGHT || 200),
   GAS_LIMIT: BigInt(process.env.GAS_LIMIT || 150000),
@@ -75,7 +76,7 @@ async function runOne(rpcUrl, contractAddr, txCount, inflightLimit, label, multi
 
   const nextNonce = {};
   for (const w of signers) {
-    nextNonce[w.address] = await provider.getTransactionCount(w.address, "pending");
+    nextNonce[w.address] = await provider.getTransactionCount(w.address, "latest");
   }
 
   const startCount = await counter.count();

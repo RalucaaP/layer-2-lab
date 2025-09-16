@@ -11,25 +11,62 @@ You will:
 
 ## Prerequisites
 
-Make sure the following are installed:
+You only need:
+- Ubuntu 22.04+ (or WSL2 if on Windows)
+- Git (to clone this repo)
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)  
-- [Node.js](https://nodejs.org/) (≥ 20.10 recommended)  
-- [npm](https://www.npmjs.com/) (comes with Node.js)  
-- Git (to clone the repository)
+Everything else (Node.js, Docker, dependencies) is installed using the provided scripts.
 
 ---
 
 
-## 1. Start Local Environment
+## 1. Install prerequisites
 
-Use the provided script:
+Run the provided script:
+
+```bash
+./install_prerequisites.sh
+```
+
+This will install:
+- **Node.js v20**
+- **Docker**
+- **Docker Compose**
+- Start the Docker service automatically
+
+> ⚠️ If you see `Permission denied`, run:
+> ```bash
+> chmod +x install_prerequisites.sh
+> ./install_prerequisites.sh
+> ```
+
+---
+
+## 2. Install project dependencies
+
+Run the second script to install Node.js dependencies for the lab:
+
+```bash
+./install-deps.sh
+```
+
+> ⚠️ If you see `Permission denied`, run:
+> ```bash
+> chmod +x install-deps.sh
+> ./install-deps.sh
+> ```
+
+---
+
+## 3. Start the local setup
+
+Launch the local zkSync (L2) + L1 environment using Docker:
 
 ```bash
 ./start.sh
 ```
 
-This launches:
+This will start:
 - **reth (L1)**: `http://127.0.0.1:8545` (blocktime = 6s)  
 - **zkSync local-node (L2)**: `http://127.0.0.1:3050`  
 - **Postgres**: used internally by zkSync  
@@ -38,39 +75,29 @@ Wait until zkSync is healthy (log: `server is ready`).
 
 ---
 
-## 2. Install Dependencies
+## 4. Compile Smart Contracts
 
-Go into the lab folder and install Node.js dependencies:
+Before deployment, compile the example contracts (Counter1.sol and Counter2.sol):
 
 ```bash
 cd zksync-burst-demo
-npm install
-```
-
----
-
-## 3. Compile Contracts
-
-We’ll use a simple **Counter** contract (`contracts/Counter.sol`):
-
-```bash
 npx hardhat compile
 ```
 
 ---
 
-## 4. Deploy Contracts
+## 5. Deploy Contracts
 
-Deploy the Counter contract to both L1 and L2:
+Deploy Counter1 on L1 and Counter2 on L2 (make sure you are in layer-2-lab/zksync-burst-demo folder):
 
 ```bash
-npx hardhat run scripts/deploy-l1.js --network l1Local
-npx hardhat run scripts/deploy-l2.js --network zksyncLocal
+npx hardhat run scripts/deploy-l1.cjs --network l1Local
+npx hardhat run scripts/deploy-l2.cjs --network zksyncLocal
 ```
 
 Each script will print the deployed contract address.
 
-👉 Copy these addresses and update them inside `scripts/bench.cjs` where indicated:
+Copy these addresses and update them inside `scripts/bench.cjs` where indicated:
 
 ```js
   ADDR_L1: process.env.ADDR_L1 || "PASTE_L1_ADDRESS_HERE", 
@@ -79,9 +106,9 @@ Each script will print the deployed contract address.
 
 ---
 
-## 5. Run Benchmarks
+## 6. Run Benchmarks
 
-Run the benchmark script with different concurrency and signer settings.
+Run the benchmark script with different concurrency and signer settings (inside the zksync-burst-demo folder).
 
 ### Example 1: Baseline (1 signer, 40 inflight)
 ```bash
@@ -100,7 +127,7 @@ INFLIGHT=320 MULTI_SIGNERS=8 node scripts/bench.cjs
 
 ---
 
-## 6. Interpreting Results
+## 7. Interpreting Results
 
 The benchmark outputs a table:
 
@@ -117,7 +144,7 @@ The benchmark outputs a table:
 
 ---
 
-## 7. Reset Environment
+## 8. Reset Environment
 
 Stop and clean containers:
 
@@ -138,7 +165,7 @@ npx hardhat clean
 
 - `rich-wallets.json` contains **prefunded test accounts**. Never use them on mainnet.  
 - If you see `nonce too high` errors → reduce `INFLIGHT` or increase `MULTI_SIGNERS`.  
-- Node version tested: **Node.js 18.x**  
+- Node version tested: **Node.js 20.10.x**  
 - Docker images pinned:
   - `ghcr.io/paradigmxyz/reth:v1.3.12`
   - `matterlabs/local-node:latest2.0`

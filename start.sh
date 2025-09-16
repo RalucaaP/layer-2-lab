@@ -9,12 +9,12 @@
 INSTANCE_TYPE=${1:-latest2.0}
 
 export INSTANCE_TYPE=$INSTANCE_TYPE
-docker compose up -d
+sudo docker-compose up -d
 
 
 check_all_services_healthy() {
   service="zksync"
-  (docker compose ps $service | grep "(healthy)")
+  (sudo docker-compose ps $service | grep "(healthy)")
   if [ $? -eq 0 ]; then
     return 0
   else

@@ -7,9 +7,9 @@ services:
         source: ./reth_chaindata
         target: /chaindata
 
-    command: node --dev --datadir /rethdata --http --http.corsdomain "*" --http.addr 0.0.0.0 --http.port 8545  --dev.block-time 6s --chain /chaindata/reth_config
+    command: node --dev --datadir /rethdata --http --http.corsdomain "*" --http.addr 0.0.0.0 --http.port 8545 --dev.block-time 6s --chain /chaindata/reth_config 
     environment:
-      - RUST_LOG=warn
+      - RUST_LOG=info
     ports:
       - 127.0.0.1:8545:8545
   postgres:
